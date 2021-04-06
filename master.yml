@@ -1,0 +1,54 @@
+- hosts: localhost
+  vars:
+          software:
+                  - kubeadm
+                  - kubelet
+                  - kubeadm
+  tasks:
+          - name: configuring yum
+            template:
+                    src: /root/k8s-ansible-task/kubernetes.repo
+                    dest: /etc/yum.repos.d
+
+          - name: installing kubeadm kubectl kubelet
+            package:
+                    name: {{ software }}
+                    state: present
+
+          - name: pulling images
+            command: kubeadm config images pull
+
+          - name: making cgroup driver systemd in docker daemon.json
+            template:
+                    src: /root/k8s-ansible-task/daemon.json
+                    dest: /etc/docker/daemon.json
+
+          - name: restarting docker
+            service:
+                    name: docker
+                    state: restarted 
+
+          - name: installing iproute-tc
+            package:
+                    name: iproute-tc
+                    state: present
+
+          - name: initializing kubeadm
+            command: "kubeadm init  --pod-network-cidr=192.168.0.0/16   --ignore-preflight-errors=Mem   --ignore-preflight-errors=NumCPU"
+
+
+          - name: post initiallization command
+            command: "mkdir -p $HOME/.kube"
+
+          - command: "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config"
+          - command: "sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+
+          - name: installing flannel
+            command: "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
+
+          - name: print join command
+            command: "kubeadm token create --print-join-command"
+            register: join_command
+
+          - name: saving join command
+            local_action: copy content= "{{ join_command.stdout_lines[0] }}" dest= "./join_command"

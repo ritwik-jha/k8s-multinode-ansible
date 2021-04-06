@@ -1,0 +1,29 @@
+- hosts: localhost
+  tasks:
+          - name: launching master node
+            ec2:
+                    key_name: ssh-key
+                    assign_public_ip: yes
+                    image: ami-0a9d27a9f4f5c0efc
+                    instance_type: t2.micro
+                    group_id: ['sg-0a5910c5325a914bb']
+                    instance_tags:
+                            node: master
+                    region: ap-south-1
+                    count: 1
+                    vpc_subnet_id: subnet-52a09a3a
+
+
+          - name: launching slave nodes
+            ec2:
+                    key_name: ssh-key
+                    assign_public_ip: yes
+                    image: ami-0a9d27a9f4f5c0efc
+                    instance_type: t2.micro
+                    group_id: ['sg-0a5910c5325a914bb']
+                    instance_tags:
+                            node: slave
+                    region: ap-south-1
+                    count: 3
+                    vpc_subnet_id: subnet-52a09a3a
+
