@@ -1,0 +1,25 @@
+- hosts: tag_node_slave
+- vars:
+			software:
+					- kubeadm
+					- kubelet
+					- kubectl
+					- iproute-tc
+- tasks:
+		- name: setting up kube repo
+		  template:
+					- src: /root/k8s-multinode-ansible/kubernetes.repo
+					  dest: /etc/yum.repos.d/
+						
+		- name: installing necessary softwares
+		  package:
+					- name: {{ software }}
+					  state: present
+						
+		- name: pulling images
+			command: kubeadm config images pull 
+			
+		- name: making docker driver systemd
+			template:
+					- name: 
+						
